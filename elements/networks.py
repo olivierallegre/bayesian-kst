@@ -1,14 +1,17 @@
 import gum
+from elements.layers import PriorNetworkLayer, IntermediateNetworkLayer
 
 
 class BayesianBKTNetwork:
 
-    def __init__(self):
+    def __init__(self, domain_graph, evaluations):
         self.network = gum.BayesNet('LearnerGraph')
-        self.network_nodes = self.set_network_nodes()
+        self.domain_graph = domain_graph
+        self.knowledge_components = domain_graph.kc_list
+        self.intermediate_network_layers = []
+        self.prior_network_layer = PriorNetworkLayer(self)
+        self._set_network_layers(evaluations)
 
-
-    def set_network_nodes(self):
-
-
-    def set_network_layers(self):
+    def _set_network_layers(self, evaluations):
+        for i in range(len(evaluations)):
+            self.intermediate_network_layers.append(IntermediateNetworkLayer(self, evaluations[i], i))
