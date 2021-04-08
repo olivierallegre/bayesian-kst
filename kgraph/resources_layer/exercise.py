@@ -4,7 +4,7 @@ from ast import literal_eval
 
 class Exercise:
 
-    def __init__(self, ex_id, ex_type, ex_content, ex_fam, params={}):
+    def __init__(self, ex_id, ex_type, ex_content, params={}):
         """
         Initialization of Exercise object
         :param ex_id: int, exercise id
@@ -12,23 +12,27 @@ class Exercise:
         :param params: dict, exercise parameters -- keys must belong to [learn, guess, slip, delta, gamma]
         """
         self.id = ex_id
-        if ex_content[1] == "'":
+        if not ex_content:
+            self.content = "Empty"
+        elif ex_content[1] == "'":
             self.content = literal_eval(ex_content)
         else:
             self.content = json.loads(ex_content)
         assert self.content, print(f"Exercise #{self.id} content is empty.")
         self.type = ex_type
-        if not params:
-            # TODO: define a default param arg
-            self.params = {}
+        self.params = {}
         if "guess" not in params.keys():
             self._initialize_guess_param()
-            assert 0 <= self.params["guess"] <= .5, f"Guess parameter of {self.type} {self.id} must be in [0, 0.5], " \
-                                                    f"but computed guess parameter is {self.params['guess']}."
+        else:
+            self.params["guess"] = params["guess"]
+        assert 0 <= self.params["guess"] <= .5, f"Guess parameter of {self.type} {self.id} must be in [0, 0.5], " \
+                                                f"but computed guess parameter is {self.params['guess']}."
         if "slip" not in params.keys():
             self._initialize_slip_param()
-            assert 0 <= self.params["slip"] <= .5, f"Slip parameter of {self.type} {self.id} must be in [0, 0.5], " \
-                                               f"but computed slip parameter is {self.params['slip']}."
+        else:
+            self.params["slip"] = params["slip"]
+        assert 0 <= self.params["slip"] <= .5, f"Slip parameter of {self.type} {self.id} must be in [0, 0.5], " \
+                                           f"but computed slip parameter is {self.params['slip']}."
 
     def __str__(self):
         """
