@@ -1,6 +1,7 @@
 import numpy as np
 from kgraph.learner_layer.learner import Learner
 
+
 class Evaluation(object):
 
     def __init__(self, evaluation_id, exercise_family, learner: Learner, answers):
