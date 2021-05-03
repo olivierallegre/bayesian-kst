@@ -57,13 +57,14 @@ class KnowledgeComponent(object):
         """
         self.id = kc_id
         self.name = kc_name
-        self.declare_associated_ex_fam(ex_fam)
+        self.exercise_family = ex_fam
+        self.declare_kc_for_exercise_family()
         self.behavior = None
 
-    def declare_associated_ex_fam(self, ex_fam):
-        self.exercise_family = ex_fam
-        if self.exercise_family.kc is not self:
-            self.exercise_family.declare_related_kc(self)
+    def declare_kc_for_exercise_family(self):
+        if self.exercise_family:
+            if self.exercise_family.kc is not self:
+                self.exercise_family.declare_related_kc(self)
 
     def update_mastering_probability(self, initial_m_pba, answer, params):
         if self.behavior == 'declarative':
@@ -77,11 +78,8 @@ class KnowledgeComponent(object):
         else:
             behavior = input("No behavior informed: please type 'declarative' or 'procedural'.")
             assert behavior in ('declarative', 'procedural'), "Given behavior unknown."
-            if behavior == 'declarative':
-                self = DeclarativeKnowledgeComponent()
-            else:
-                self = ProceduralKnowledgeComponent()
-            self.update_mastering_probability()
+            self.behavior = behavior
+            self.update_mastering_probability(initial_m_pba, answer, params)
 
     def get_exercise_family(self):
         return self.exercise_family

@@ -26,6 +26,9 @@ class LearnerPool(object):
         if learner not in self.learners and learner.id != 0:
             self.learners.append(learner)
 
+    def get_test_learner(self):
+        return Learner(-1, self)
+
     def get_new_learner_graph(self, learner):
         assert learner in self.learners or learner.id == 0, "Given learner not in learner_pool."
         learner.set_learner_graph(LearnerGraph(learner, self.domain_graph))

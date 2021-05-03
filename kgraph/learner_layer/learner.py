@@ -121,3 +121,16 @@ class Learner(object):
         self.set_mastering_probability(kc, initial_m_pba)
         return m_pba
 
+    def simulate_evaluation(self, exercise_family):
+        from .evaluation import Evaluation
+        import random
+        ex_list = exercise_family.exercise_list
+        m_pba = self.get_mastering_probability(exercise_family.kc)
+        n_ex = len(ex_list)
+        answers = {}
+        for i in random.sample(range(n_ex), n_ex):
+            slip, guess = ex_list[i].get_slip(), ex_list[i].get_guess()
+            biased_m_pba = m_pba*(1-slip) + (1-m_pba)*guess
+            answers[ex_list[i]] = {"success": random.random() < biased_m_pba}
+        simulated_evaluation = Evaluation(0, exercise_family, answers)
+        return simulated_evaluation

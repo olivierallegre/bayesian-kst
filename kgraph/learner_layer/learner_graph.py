@@ -66,8 +66,6 @@ class LearnerGraph(object):
             if isinstance(kc, ProceduralKnowledgeComponent):
                 if kc.exercise_family:
                     self._initialize_learn_param(kc, verbose)
-                else:
-                    self.set
             else:
                 if kc.exercise_family:
                     self._initialize_delta_and_gamma_params(kc, verbose)

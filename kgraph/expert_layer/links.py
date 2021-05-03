@@ -3,17 +3,6 @@ from kgraph.helpers.truthtable import truthtable, bool_list_to_int, int_to_bool_
 from kgraph.expert_layer.knowledge_components import KnowledgeComponent
 
 
-def get_all_parents(knowledge_components, link_model):
-    # TODO: refactor
-    if not knowledge_components:
-        return []
-    elif isinstance(knowledge_components, list):
-        parents = []
-        for kc in knowledge_components:
-            parents = list(set(parents + get_all_parents(kc)))
-        return parents
-    else:
-        return list(set(list(knowledge_components.parents) + get_all_parents(knowledge_components.parents)))
 
 
 class LinkModel(object):
@@ -88,6 +77,32 @@ class LinkModel(object):
     def get_roots(self):
         roots = [key for key in self.links if not self.links[key]["from_parents"]]
         return roots
+
+    def get_all_parents(self, knowledge_components):
+        # TODO: refactor
+        if not knowledge_components:
+            return []
+        elif isinstance(knowledge_components, list):
+            parents = []
+            for kc in knowledge_components:
+                parents = list(set(parents + self.get_all_parents(kc)))
+            return parents
+        else:
+            parents = self.get_parents(knowledge_components)
+            return list(set(list(parents) + self.get_all_parents(parents)))
+
+    def get_all_children(self, knowledge_components):
+        # TODO: refactor
+        if not knowledge_components:
+            return []
+        elif isinstance(knowledge_components, list):
+            children = []
+            for kc in knowledge_components:
+                children = list(set(children + self.get_all_children(kc)))
+            return children
+        else:
+            children = self.get_children(knowledge_components)
+            return list(set(list(children) + self.get_all_children(children)))
 
 
 class Link(object):
