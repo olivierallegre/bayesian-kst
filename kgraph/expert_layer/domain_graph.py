@@ -132,3 +132,11 @@ class DomainGraph(object):
 
     def get_knowledge_components(self):
         return self.knowledge_components
+
+    def get_kc_by_name(self, kc_name):
+        knowledge_components = [kc for kc in self.knowledge_components if kc.name == kc_name]
+        if len(knowledge_components) > 0:
+            return knowledge_components[0]
+        else:
+            return Exception()
+

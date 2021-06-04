@@ -57,7 +57,7 @@ class LearnerGraph(object):
         :param verbose: bool, True if prints are wanted, False otherwise
         :return: None, only changes the params of self LearnerGraph
         """
-        for kc in tqdm.tqdm(self.kc_dict.keys()):
+        """for kc in tqdm.tqdm(self.kc_dict.keys()):
             if verbose:
                 print(f"Initializing parameters for:\n"
                       f"- {'P' if isinstance(kc, ProceduralKnowledgeComponent) else 'D'}"
@@ -69,6 +69,7 @@ class LearnerGraph(object):
             else:
                 if kc.exercise_family:
                     self._initialize_delta_and_gamma_params(kc, verbose)
+        """
 
     def _initialize_learn_param(self, kc, verbose=False):
         """

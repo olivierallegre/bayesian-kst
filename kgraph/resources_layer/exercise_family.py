@@ -14,7 +14,7 @@ class ExerciseFamily(object):
         """
         self.id = ef_id
         self.name = ef_name
-        self.kc = kc
+        self.declare_related_kc(kc)
         if exercise_list is None:
             self.exercise_list = []
         else:
@@ -47,6 +47,8 @@ class ExerciseFamily(object):
             self.kc = kc
         else:
             return AssertionError
+        if self is not self.kc.exercise_family:
+            self.kc.exercise_family = self
 
     def get_number_of_exercises(self):
         """

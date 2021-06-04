@@ -3,6 +3,7 @@ import dill
 from kgraph.expert_layer.domain_graph import DomainGraph
 from kgraph.learner_layer.learner import Learner
 from kgraph.learner_layer.learner_graph import LearnerGraph
+from kgraph.helpers.random_generation import get_random_integers_list_summing_to_given_integer
 
 
 class LearnerPool(object):
@@ -69,3 +70,45 @@ class LearnerPool(object):
         # seed random number generator
         seed(1)
         return self.learners[randint(0, len(self.learners))]
+
+    def setup_random_learners(self, n_learners):
+        import random
+        for i in range(1, n_learners + 1):
+            learner = Learner(i, self)
+            if learner not in self.learners:
+                self.learners.append(learner)
+            p_a = random.uniform(0, 1)
+            learner.set_mastering_probability(self.domain_graph.get_kc_by_name("A"), p_a)
+            p_b = random.uniform(0, 1)
+            learner.set_mastering_probability(self.domain_graph.get_kc_by_name("B"), p_b)
+            p_c = (1 - p_a) * p_b * .15 + p_a * (1 - p_b) * .1 + p_a * p_b * .6
+            learner.set_mastering_probability(self.domain_graph.get_kc_by_name("C"), p_c)
+
+    def simulate_evaluations_from_learners(self, n_evaluations):
+        import random
+        # generating the evaluation repartition between users and kcs
+        eval_repartition = []
+        n_learners = len(self.learners)
+        n_kc = len(self.domain_graph.knowledge_components)
+        n_evaluation_of_learner = get_random_integers_list_summing_to_given_integer(n_learners, n_evaluations)
+
+        for i in range(n_learners):
+            learner_eval_repartition = get_random_integers_list_summing_to_given_integer(
+                n_kc, n_evaluation_of_learner[i])
+            eval_repartition.append(learner_eval_repartition)
+        simulated_evals = [[] for _ in range(n_learners)]
+        # generating the evals one by one
+        for i in range(n_learners):
+            for j in range(n_kc):
+                for k in range(eval_repartition[i][j]):
+                    simulated_evals[i].append(self.learners[i].simulate_evaluation(
+                        self.domain_graph.knowledge_components[j].exercise_family))
+        shuffled_sim_evals = [[simulated_evals[i][j] for j in random.sample([
+            k for k in np.arange(len(simulated_evals[i]))], len(simulated_evals[i]))]
+                        for i in range(n_learners)]
+        return shuffled_sim_evals
+
+
+
+    def print_default_learner_graph(self):
+        print(self.default_learner.learner_graph)
