@@ -79,10 +79,8 @@ class LearnerPool(object):
                 self.learners.append(learner)
             p_a = random.uniform(0, 1)
             learner.set_mastering_probability(self.domain_graph.get_kc_by_name("A"), p_a)
-            p_b = random.uniform(0, 1)
+            p_b = (1 - p_a) * .15 + p_a * .1
             learner.set_mastering_probability(self.domain_graph.get_kc_by_name("B"), p_b)
-            p_c = (1 - p_a) * p_b * .15 + p_a * (1 - p_b) * .1 + p_a * p_b * .6
-            learner.set_mastering_probability(self.domain_graph.get_kc_by_name("C"), p_c)
 
     def simulate_evaluations_from_learners(self, n_evaluations):
         import random

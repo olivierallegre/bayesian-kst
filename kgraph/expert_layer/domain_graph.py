@@ -140,3 +140,5 @@ class DomainGraph(object):
         else:
             return Exception()
 
+    def get_kc_parents(self, kc):
+        return self.link_model.get_parents(kc)
