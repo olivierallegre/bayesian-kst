@@ -4,7 +4,7 @@ from ast import literal_eval
 
 class Exercise:
 
-    def __init__(self, ex_id, ex_type, ex_content, params={}):
+    def __init__(self, ex_id, knowledge_component, ex_type, ex_content, params={}):
         """
         Initialization of Exercise object
         :param ex_id: int, exercise id
@@ -12,6 +12,7 @@ class Exercise:
         :param params: dict, exercise parameters -- keys must belong to [learn, guess, slip, delta, gamma]
         """
         self.id = ex_id
+        self.knowledge_component = knowledge_component
         if not ex_content:
             self.content = "Empty"
         elif ex_content[1] == "'":
@@ -39,7 +40,7 @@ class Exercise:
         Method to print the content of an Exercise.
         :return: print of the content
         """
-        string = f"Exercise #{self.id} with content : {self.content}\n"
+        string = f"Exercise #{self.id} on KC {self.knowledge_component.name} with content : {self.content}\n"
         for key in self.params.keys():
             string += f"{key} values {self.params[key]}.\n"
         return string
