@@ -3,7 +3,7 @@ import numpy as np
 import tqdm
 from kgraph.expert_layer.knowledge_components import KnowledgeComponent, ProceduralKnowledgeComponent, \
     DeclarativeKnowledgeComponent
-from kgraph.expert_layer.links import LinkModel
+from kgraph.expert_layer.link import LinkModel
 from kgraph.resources_layer.exercise import Exercise
 from kgraph.resources_layer.exercise_family import ExerciseFamily
 from ast import literal_eval

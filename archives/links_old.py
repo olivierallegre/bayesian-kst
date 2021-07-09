@@ -3,8 +3,6 @@ from kgraph.helpers.truthtable import truthtable, bool_list_to_int, int_to_bool_
 from kgraph.expert_layer.knowledge_components import KnowledgeComponent
 
 
-
-
 class LinkModel(object):
 
     def __init__(self, links):
