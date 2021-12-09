@@ -1,44 +1,37 @@
-import numpy as np
+class LearnerTrace(object):
 
-
-class Evaluation(object):
-
-    def __init__(self, evaluation_id, exercise_family, answers):
+    def __init__(self, learner, exercise, success):
         """
         Initialization of the Evaluation object.
         :param exercise_family: ExerciseFamily, exercise family which has been evaluated
         :param answers: dict, answers of the evaluation -- {exercise : {"success": bool, "length": x sec}}
         """
-        self.id = evaluation_id
-        self.exercise_family = exercise_family
-        assert isinstance(answers, dict), "answers must be a dict {exercise: {'success': bool, 'length': x (in s)}}"
-        if any([isinstance(key, np.integer) for key in answers.keys()]):
-            answers = {exercise_family.get_exercise_from_id(key): answers[key] for key in answers.keys()}
-        self.answers = answers
-
-    def __str__(self):
-        string = f"Evaluation #{self.id} on ExerciseFamily #{self.exercise_family.id}: " \
-                 f"{self.get_number_of_right_answers()}/{len(self.answers.keys())}"
-        return string
-
-    def __eq__(self, other):
-        if self.id == other.id:
-            if self.exercise_family == other.exercise_family:
-                if self.answers == other.answers:
-                    return True
-        return False
-
-    def get_exercise_ids(self):
-        return [exercise.id for exercise in self.exercise_family.exercise_list]
-
-    def get_kc_id(self):
-        return self.exercise_family.kc.id
+        self.learner = learner
+        self.exercise = exercise
+        assert isinstance(success, bool), "answers must be a dict {exercise: {'success': bool, 'length': x (in s)}}"
+        self.success = success
+        self.knowledge_component = self.exercise.get_kc()
 
     def get_kc(self):
-        return self.exercise_family.kc
+        return self.knowledge_component
 
-    def get_results(self):
-        return [self.answers[key]['success'] for key in self.answers.keys()]
+    def get_success(self):
+        return self.success
 
-    def get_number_of_right_answers(self):
-        return len([res for res in self.get_results() if res])
+    def get_exercise(self):
+        return self.exercise
+
+    def get_learner(self):
+        return self.learner
+
+def df_to_learner_traces(df, learner_pool):
+    from kgraph.learner_layer.learner import Learner
+
+    learner_traces = []
+    for learner_id in df["user_id"].unique():
+        learner = Learner(learner_id, learner_pool)
+        learner_df = df[df["user_id"] == learner_id]
+        for i, row in learner_df.iterrows():
+            learner_traces.append(LearnerTrace(learner, ))
+
+    return learner_traces

@@ -48,7 +48,7 @@ def update_mastering_probability_for_declarative_knowledge_component(initial_m_p
 
 class KnowledgeComponent(object):
 
-    def __init__(self, kc_id: int, kc_name: str, ex_fam=None):
+    def __init__(self, kc_id: int, kc_name: str, exercises=None):
         """
         Constructor of the KnowledgeComponent class
         :param kc_id: the id of the KnowledgeComponent
@@ -57,14 +57,17 @@ class KnowledgeComponent(object):
         """
         self.id = kc_id
         self.name = kc_name
-        self.exercise_family = ex_fam
-        self.declare_kc_for_exercise_family()
+        self.exercises = [] if exercises is None else exercises
         self.behavior = None
 
-    def declare_kc_for_exercise_family(self):
-        if self.exercise_family:
-            if self.exercise_family.kc is not self:
-                self.exercise_family.declare_related_kc(self)
+    def add_associated_exercise(self, exercise):
+        from kgraph.resources_layer.exercise import Exercise
+        assert isinstance(exercise, Exercise), "Exercise object expected."
+
+        self.exercises.append(exercise)
+        if not exercise.get_kc() is self:
+            exercise.set_kc(self)
+        exercise.set_kc(self)
 
     def update_mastering_probability(self, initial_m_pba, answer, params):
         if self.behavior == 'declarative':
@@ -81,8 +84,8 @@ class KnowledgeComponent(object):
             self.behavior = behavior
             self.update_mastering_probability(initial_m_pba, answer, params)
 
-    def get_exercise_family(self):
-        return self.exercise_family
+    def get_exercises(self):
+        return self.exercises
 
 
 class DeclarativeKnowledgeComponent(KnowledgeComponent):

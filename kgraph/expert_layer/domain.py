@@ -23,7 +23,9 @@ class Domain(object):
             columns=['index', 'source', 'target'])
 
     def __str__(self):
-        string = f"Domain on {len(self.knowledge_components)} KCs."
+        string = f"Domain on {len(self.knowledge_components)} KCs:\n"
+        for kc in self.knowledge_components:
+            string += f"- KC {kc.id}: {kc.name}\n"
         return string
 
     def add_kc(self, kc: KnowledgeComponent):
@@ -60,6 +62,12 @@ class Domain(object):
         """
         return self.links
 
+    def set_links(self, links):
+        self.links = links
+        self.link_df = pd.DataFrame([[
+            i, self.links[i].source, self.links[i].target] for i in range(len(self.links))],
+            columns=['index', 'source', 'target'])
+
     def get_exercises(self):
         return [kc.exercise for kc in self.knowledge_components]
 
@@ -76,3 +84,14 @@ class Domain(object):
     def get_kc_children(self, kc):
         return pd.unique(self.link_df.loc[self.link_df['source'] == kc]['target'])
 
+    def get_domain_graph(self):
+        import networkx as nx
+        G = nx.Graph()
+        return G
+
+    def get_kc_from_id(self, kc_id):
+        knowledge_components = [kc for kc in self.knowledge_components if kc.id == kc_id]
+        if len(knowledge_components) > 0:
+            return knowledge_components[0]
+        else:
+            return Exception()

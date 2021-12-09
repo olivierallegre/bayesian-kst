@@ -4,7 +4,7 @@ from ast import literal_eval
 
 class Exercise:
 
-    def __init__(self, ex_id, knowledge_component, ex_type, ex_content, params={}):
+    def __init__(self, ex_id, knowledge_component, ex_type=None, ex_content=None, params=None):
         """
         Initialization of Exercise object
         :param ex_id: int, exercise id
@@ -12,7 +12,8 @@ class Exercise:
         :param params: dict, exercise parameters -- keys must belong to [learn, guess, slip, delta, gamma]
         """
         self.id = ex_id
-        self.knowledge_component = knowledge_component
+        self.set_kc(knowledge_component)
+
         if not ex_content:
             self.content = "Empty"
         elif ex_content[1] == "'":
@@ -22,28 +23,14 @@ class Exercise:
         assert self.content, print(f"Exercise #{self.id} content is empty.")
         self.type = ex_type
         self.params = {}
-        if "guess" not in params.keys():
-            self._initialize_guess_param()
-        else:
-            self.params["guess"] = params["guess"]
-        assert 0 <= self.params["guess"] <= .5, f"Guess parameter of {self.type} {self.id} must be in [0, 0.5], " \
-                                                f"but computed guess parameter is {self.params['guess']}."
-        if "slip" not in params.keys():
-            self._initialize_slip_param()
-        else:
-            self.params["slip"] = params["slip"]
-        assert 0 <= self.params["slip"] <= .5, f"Slip parameter of {self.type} {self.id} must be in [0, 0.5], " \
-                                           f"but computed slip parameter is {self.params['slip']}."
+        #self._initialize_guess_param()
+        #self._initialize_slip_param()
+        if params is not None:
+            if "guess" in params.keys():
+                self.params["guess"] = params["guess"]
+            if "slip" in params.keys():
+                self.params["slip"] = params["slip"]
 
-    def __str__(self):
-        """
-        Method to print the content of an Exercise.
-        :return: print of the content
-        """
-        string = f"Exercise #{self.id} on KC {self.knowledge_component.name} with content : {self.content}\n"
-        for key in self.params.keys():
-            string += f"{key} values {self.params[key]}.\n"
-        return string
 
     def _initialize_guess_param(self, verbose=False):
         """
@@ -125,3 +112,13 @@ class Exercise:
         :return: guess parameter of self
         """
         return self.params['guess']
+
+    def set_kc(self, kc):
+        from kgraph.expert_layer.knowledge_components import KnowledgeComponent
+        assert isinstance(kc, KnowledgeComponent), "KnowledgeComponent object expected."
+        self.knowledge_component = kc
+        if self not in self.knowledge_component.get_exercises():
+            self.knowledge_component.add_associated_exercise(self)
+
+    def get_kc(self):
+        return self.knowledge_component

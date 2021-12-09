@@ -3,9 +3,8 @@ import matplotlib.pyplot as plt
 import pyAgrum.lib.dynamicBN as gdyn
 import pyAgrum as gum
 import pyAgrum.lib.notebook as gnb
-from kgraph.learner_layer.evaluation import Evaluation
 import sklearn.metrics as sk_metrics
-
+from kgraph.learner_layer.inference_model import NoisyANDInferenceModel, NoisyORInferenceModel
 
 class Learner(object):
 
@@ -20,9 +19,6 @@ class Learner(object):
         if self.learner_pool:
             self.learner_pool.add_learner(self)
             knowledge_components = self.learner_pool.get_knowledge_components()
-            self.parameters = {kc: {'learn': self.learner_pool.get_learn(kc),
-                                    'slip': self.learner_pool.get_slip(kc),
-                                    'guess': self.learner_pool.get_guess(kc)} for kc in knowledge_components}
             self.mastering_probabilities = {kc: self.learner_pool.get_prior(kc) for kc in knowledge_components}
 
     def change_learner_pool(self, new_learner_pool):
@@ -35,15 +31,6 @@ class Learner(object):
         return guess
 
     @staticmethod
-    def get_learn_parameter(self, kc):
-        return self.parameters[kc]['learn']
-
-    def get_slip_parameter(self, kc):
-        return self.parameters[kc]['slip']
-
-    def get_guess_parameter(self, kc):
-        return self.parameters[kc]['guess']
-
     def set_mastering_probability(self, kc, prior):
         assert kc in self.mastering_probabilities.keys()
         self.mastering_probabilities[kc] = prior
@@ -58,34 +45,24 @@ class Learner(object):
     def get_priors(self):
         return {kc.name: self.get_mastering_probability(kc) for kc in self.learner_pool.get_knowledge_components()}
 
-    def predict_next_step(self, priors, evaluation=None, pred_mode='one_kc'):
-        evaluated_kc = evaluation[0] if evaluation else evaluation
-        bn = self.learner_pool.two_step_bn(priors, evaluated_kc, pred_mode)
-        if evaluated_kc:
-            evidence = {
-                f"({evaluation[0].name})t": [self.learner_pool.get_guess(evaluated_kc),
-                                             1 - self.learner_pool.get_guess(evaluated_kc)] if evaluation[1]
-                else [1 - self.learner_pool.get_slip(evaluated_kc), self.learner_pool.get_slip(evaluated_kc)]}
+    def predict_sequence(self, learner_traces, inference_model_type, params):
+        n_eval = len(learner_traces)
+        if inference_model_type == 'NoisyAND':
+            inference_model = NoisyANDInferenceModel(self.learner_pool, {'c': params['c'], 's': params['s']})
+        elif inference_model_type == 'NoisyOR':
+            inference_model = NoisyORInferenceModel(self.learner_pool, params['c'])
         else:
-            evidence = {}
-        ie = gum.LazyPropagation(bn)
-        ie.setEvidence(evidence)
-        ie.makeInference()
-        knowledge_components = self.learner_pool.get_knowledge_components()
-        next_state_prediction = {
-            **{f"{kc.name}": ie.posterior(bn.idFromName(f"({kc.name})t"))[1] for kc in knowledge_components},
-            **{f"eval({kc.name})": ie.posterior(bn.idFromName(f"eval({kc.name})t"))[1] for kc in
-               knowledge_components}}
-        return next_state_prediction
+            return Exception('This type of inference model is not handled.')
+        correct_predictions, exercises = [], []
+        for trace in learner_traces:
+            exercise = trace.get_exercise()
+            if exercise not in exercises:
+                exercises.append(exercise)
 
-    def predict_sequence(self, evaluations, floor_idx=0, verbose=False):
-        n_eval = len(evaluations)
-        knowledge_state = {kc.name: self.learner_pool.get_prior(kc) for kc in self.learner_pool.get_knowledge_components()}
-        predicted_values = {}
-        for i in range(n_eval-1):
-            knowledge_state = self.predict_next_step(knowledge_state, evaluations[i])
-            if i > floor_idx:
-                for kc in self.learner_pool.get_knowledge_components():
-                    predicted_values[f"({kc.name}){i}"] = knowledge_state[f"{kc.name}"]
-                    predicted_values[f"eval({kc.name}){i}"] = knowledge_state[f"eval({kc.name})"]
-        return predicted_values
+        for i in range(n_eval):
+            knowledge_states = inference_model.predict_learner_knowledge_states_from_learner_traces(learner_traces[:i])
+            slip = self.learner_pool.slips[learner_traces[i].get_exercise()]
+            guess = self.learner_pool.guesses[learner_traces[i].get_exercise()]
+            m_pba = knowledge_states[f'{learner_traces[i].get_kc().id}']
+            correct_predictions.append(m_pba*(1-slip) + (1-m_pba)*guess)  # pba to answer correctly
+        return correct_predictions
